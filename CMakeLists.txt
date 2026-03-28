@@ -4,17 +4,27 @@
 cmake_minimum_required(VERSION 3.18)
 project(project)
 
-# add_definitions(AOTInductor_CUDA)
+find_package(Git REQUIRED)
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/deps/glfw/CMakeLists.txt")
+    message(STATUS "Initial clone detected. Fetching submodules shallowly...")
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} -c submodule.fetchJobs=8 
+                submodule update --init --recursive --depth 1
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endif()
+
 add_executable(${PROJECT_NAME} src/main.cpp)
 include_directories("src")
 
 add_definitions(-DTRACY_ENABLE)
-add_subdirectory("deps/tracy-0.13.1")
+add_subdirectory("deps/tracy")
 
 # Flecs
-include_directories("deps/flecs-4.1.1/include")
+include_directories("deps/flecs/include")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build Flecs as a shared library" FORCE)
-add_subdirectory("deps/flecs-4.1.1")
+add_subdirectory("deps/flecs")
 
 # Flecs custom build configuration - must match defines in main.cpp
 target_compile_definitions(flecs PUBLIC
